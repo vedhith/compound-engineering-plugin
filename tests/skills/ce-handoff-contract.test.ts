@@ -41,7 +41,8 @@ describe("ce-handoff portable runtime contract", () => {
   })
 
   test("defines the managed store and immutable v1 frontmatter", () => {
-    expect(corpus).toContain('HANDOFF_DIR="$SCRATCH_ROOT/ce-handoff/<repo-namespace>"')
+    expect(corpus).toContain("<root>/handoffs/<topic>.md")
+    expect(corpus).toContain('HANDOFF_DIR="$SCRATCH_ROOT/ce-handoff/general"')
     expect(corpus).toContain('SCRATCH_ROOT="/tmp/compound-engineering-$(id -u)"')
     expect(corpus).toContain("$HANDOFF_DIR/<topic>.md")
     expect(corpus).toContain("ce-handoff/v1")
@@ -53,7 +54,7 @@ describe("ce-handoff portable runtime contract", () => {
     }
     expect(corpus).toMatch(/immutable/i)
     expect(corpus).toMatch(/topic slug as the filename/i)
-    expect(corpus).toMatch(/Worktrees from the same repository share the namespace/i)
+    expect(corpus).toMatch(/Repository handoffs share the configured artifact collection/i)
     expect(corpus).toMatch(/Do not put a timestamp or unique ID in the path.*created_at.*chronology/i)
     expect(corpus).toMatch(/Reserve the final candidate filename atomically and exclusively.*collision.*numeric suffix.*overwrite/i)
     expect(corpus).toMatch(/Never check availability and then write/i)
@@ -125,8 +126,8 @@ describe("ce-handoff portable runtime contract", () => {
     expect(skill).toMatch(/redact.*(?:secrets|credentials).*(?:personal|unrelated)/i)
     expect(corpus).toMatch(/directory and file user-private/i)
     expect(skill).toMatch(/fragile.*worktree.*without.*(?:mutat|commit|stash|copy)/i)
-    expect(skill).toMatch(/OS-managed.*not permanent/i)
-    expect(corpus).toMatch(/Automatic discovery assumes.*same host filesystem/i)
+    expect(skill).toMatch(/no-repository.*OS-managed.*not permanent/i)
+    expect(corpus).toMatch(/No-repository.*same host filesystem/i)
     expect(corpus).toMatch(/transfer or publish.*receiver-visible location.*explicit source/i)
   })
 

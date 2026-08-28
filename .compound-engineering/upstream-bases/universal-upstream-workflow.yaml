@@ -1,0 +1,28 @@
+schema_version: upstream-basis/v1
+change_id: universal-upstream-workflow
+change_class: feature
+decision: forked
+selected:
+  name: Every Compound Engineering
+  url: https://github.com/EveryInc/compound-engineering-plugin
+  revision: cbd329132d4fffcb621d4e9e71ab74733b8cacc6
+  license: MIT
+  integration_surface: Forked skills, converters, artifact-root configuration, and upstream test suite.
+  local_delta: Mandatory upstream receipt gate, single-lead execution default, and contained handoffs.
+candidates:
+  - name: Every Compound Engineering
+    url: https://github.com/EveryInc/compound-engineering-plugin
+    disposition: selected
+    reason: Broad host support, active maintenance, MIT licensing, and a tested end-to-end lifecycle.
+  - name: Microsoft HVE Core RPI
+    url: https://github.com/microsoft/hve-core
+    disposition: rejected
+    reason: Adopted as lifecycle discipline, but its distribution and runtime center on GitHub Copilot.
+  - name: Superpowers
+    url: https://github.com/obra/superpowers
+    disposition: rejected
+    reason: Its runtime enforcement is prompt injection and its default implementation path fans out subagents.
+verification:
+  license_checked: true
+  activity_checked: true
+  tests_checked: true

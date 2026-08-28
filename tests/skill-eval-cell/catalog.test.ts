@@ -168,6 +168,7 @@ describe("skill-eval-cell catalog", () => {
         "ce-resolve-pr-feedback/pipeline-returns-complete-human-decision:references/pipeline-mode.md",
         "ce-test-xcode/missing-mcp-stops:references/setup-and-build.md",
         "ce-test-xcode/swiftui-inline-link-fallback:references/test-and-report.md",
+        "ce-work/bare-feature-requires-upstream-basis:references/input-triage.md",
         "ce-work/behavior-fix-routes-to-review:references/input-triage.md",
         "ce-work/requirements-only-stops:references/input-triage.md",
         "ce-work/return-to-caller-no-pr:references/input-triage.md",
@@ -190,6 +191,7 @@ describe("skill-eval-cell catalog", () => {
       "ce-debug/pipeline-divergent-defer",
       "ce-plan/config-model-reaches-authoring-gate",
       "ce-resolve-pr-feedback/pipeline-returns-complete-human-decision",
+      "ce-work/bare-feature-requires-upstream-basis",
     ])
   })
 

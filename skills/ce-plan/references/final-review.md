@@ -7,6 +7,7 @@ Phase 5.1 through 5.3.2 of `ce-plan`, on the Durable path only. Read this before
 #### 5.1 Review Before Writing
 
 Before finalizing, check:
+- Feature work has a selected adopted or forked Upstream Basis with a canonical URL, revision or release, license, documented integration/extension surface, rejected candidates, and a bounded local delta. Rejections alone fail with `upstream-basis-required`; do not write an implementation-ready plan
 - The plan does not invent product behavior that should have been defined in `ce-brainstorm`
 - If there was no origin document, the bounded planning bootstrap established enough product clarity to plan responsibly
 - Every major decision is grounded in the origin document or research
@@ -74,7 +75,7 @@ Write the unified plan artifact according to `references/plan-sections.md`.
 - If the source is a requirements-only unified plan, update that file in place unless `OUTPUT_FORMAT`, pipeline mode, or an explicit conversion requires a new canonical path. Preserve Product Contract meaning and stable IDs under Phase 0.3 step 3; sanctioned meaning-preserving restructuring remains allowed and carries its preservation-note and citation-repointing obligations. Add Planning Contract, Implementation Units, Verification Contract, and Definition of Done. When a new canonical path *is* required (format conversion), the original artifact is left in place but is **no longer canonical** — it keeps its `requirements-only` metadata, so discovery treats a requirements-only artifact that has an implementation-ready same-basename sibling as superseded (see Phase 0.2 step 2 and `ce-work`'s blank-invocation discovery) rather than re-enriching or stopping on it.
 - If the source is a legacy requirements doc, create a new unified plan in `<root>/plans/` and carry the legacy path in `origin:`.
 - If this is direct planning, create a complete unified plan in `<root>/plans/` with `product_contract_source: ce-plan-bootstrap`.
-- Set `artifact_contract: ce-unified-plan/v1`, `artifact_readiness: implementation-ready`, and `execution: code` for software implementation plans.
+- Set `artifact_contract: ce-unified-plan/v1`, `artifact_readiness: implementation-ready`, `execution: code`, and `change_class: feature|maintenance` for software implementation plans. Feature plans also set `upstream_basis: adopted|forked`; never emit `greenfield`. A feature without the matching Upstream Basis subsection stops with `upstream-basis-required` instead of being written implementation-ready.
 - Do not set `artifact_contract: ce-unified-plan/v1` on universal-planning outputs, answer-seeking outputs, or approach-plans unless they include the full software implementation contract.
 - Do not write a launch prompt into the doc. The launch prompt is generated at handoff (Phase 5.4 menu — `/goal` copy-paste on Claude Code, `create_goal` on Codex) from the plan's current content, so it never goes stale; it points to Goal Capsule, Verification Contract, Definition of Done, and U-IDs rather than duplicating them.
 

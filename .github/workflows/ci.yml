@@ -56,6 +56,25 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Install pre-commit
+        run: pipx install pre-commit
+
+      - name: Validate upstream-basis receipts and repository hygiene
+        run: pre-commit run --all-files --show-diff-on-failure
+
+      - name: Require an upstream-basis receipt for behavior-bearing changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          changed="$(git diff --name-only "origin/$BASE_REF...HEAD")"
+          if printf '%s\n' "$changed" | grep -Eq '^(skills|src)/'; then
+            printf '%s\n' "$changed" | grep -Eq '^\.compound-engineering/upstream-bases/[^/]+\.ya?ml$' || {
+              echo 'Behavior-bearing changes require a validated .compound-engineering/upstream-bases/*.yaml receipt.' >&2
+              exit 1
+            }
+          fi
+
       - name: Validate release metadata
         run: bun run release:validate
 
