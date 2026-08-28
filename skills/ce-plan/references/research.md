@@ -4,6 +4,17 @@ Phase 1 of `ce-plan`. Read this before dispatching any research subagent.
 
 ### Phase 1: Gather Context
 
+#### 1.0 Upstream-first feature gate
+
+Classify whether the requested work adds or materially extends product behavior. For feature work, external landscape research is mandatory before an implementation approach may be selected. Search for maintained projects, libraries, standards, platform capabilities, and published reference implementations that already provide the requested outcome. Prefer primary sources and record project URL, license, release/activity evidence, adoption evidence, extension surface, and fit gaps.
+
+The feature may proceed only with one selected **Upstream Basis**:
+
+- **adopted** — use the upstream system through its documented install, API, configuration, or extension surface; or
+- **forked** — fork a maintained, license-compatible upstream and keep the local delta bounded and reviewable against that upstream.
+
+Rejecting candidates is research evidence, not permission for greenfield implementation. If no candidate can be adopted or forked, stop planning and return `upstream-basis-required` with the candidates and rejection reasons for a human decision. Do not generate a substitute architecture or implementation. Bug fixes, refactors, tests, documentation, and mechanical maintenance inside an already selected system are maintenance work and do not reopen this gate unless they introduce new product behavior.
+
 All specialist research and deepening prompts used in this phase are skill-local prompt assets under `references/agents/`. When dispatching one, read the matching file and seed a generic subagent with that prompt content plus the task-specific context below. Do not dispatch standalone agents by type/name.
 
 Model tiering lives in this caller, not in prompt assets. Local prompt files have no frontmatter. Use the platform's mid-tier model for external/organizational research prompts such as `slack-researcher` and `web-researcher` when the current harness exposes a known override; otherwise omit the override and inherit. Use inherited model for high-judgment architecture, migration, and planning-deepening prompts unless the harness has an established cheaper capable tier.
@@ -69,7 +80,7 @@ Ask the user only if the direction would materially change sequencing or risk an
 
 Based on the origin document, user signals, and local findings, decide **whether** external research adds value and, if so, **what kind**. Resolve this in three stages: explicit-request priority, intent classification, then the implicit signals below.
 
-**Stage 1 — An explicit request takes precedence.** If the user prompt **or** the origin requirements document explicitly asks for external input — a signal that the answer lives outside the repo, such as competitor/prior-art comparison, "what should we borrow", "from the web", "best practices", "official docs", "alternatives to", a market scan, or naming a specific external technology to consult — external research is **required**, regardless of how strong local patterns look. The list is illustrative; key on the signal, not the exact phrase — any wording that clearly points outside the repo qualifies. The skip conditions below do **not** apply to an explicit request. The only thing that overrides it is an explicit opt-out ("no web research", "skip external research"): honor that, skip, and note it. Improvement or quality verbs ("improve", "make better") carry no external signal on their own and never trigger research by themselves.
+**Stage 1 — Mandatory feature research and explicit requests take precedence.** Phase 1.0 feature work always requires landscape/option-discovery research. An explicit request for external input also requires research regardless of how strong local patterns look. The examples include competitor/prior-art comparison, "what should we borrow", "from the web", "best practices", "official docs", "alternatives to", a market scan, or a named external technology. The list is illustrative; key on the signal, not the exact phrase. A request to skip external research may be honored for maintenance work. For feature work, it blocks with `upstream-basis-required` because implementation cannot satisfy the Upstream Basis contract without evidence. Improvement or quality verbs alone do not classify maintenance as externally researched work.
 
 **Stage 2 — Classify the research intent** (whenever external research will run, from Stage 1 or the implicit signals below) so Phase 1.3 routes correctly. Use this mechanical test, not a fixed phrase list:
 - **Implementation-guidance** — the approach or technology is already settled; the question is *how to build it well* (best practices, version-specific docs, API constraints, known pitfalls, deprecations).
@@ -115,7 +126,7 @@ Announce the decision and the intent briefly before continuing. Examples:
 - "This involves payment processing, so I'll research current best practices first (implementation-guidance)."
 - "You asked what to borrow from competitors, so I'll run a landscape scan first (landscape/option-discovery)."
 
-#### 1.3 External Research (Conditional)
+#### 1.3 External Research (Conditional for maintenance; mandatory for features)
 
 If Step 1.2 indicates external research is useful, dispatch by the **intent** classified in Stage 2, using the platform's subagent primitive (`Agent`/`Task` in Claude Code, `spawn_agent` in Codex) where available; otherwise run the work inline or serially. Read the selected prompt asset from `references/agents/` and seed a generic subagent with it. For `web-researcher.md`, pass a focus hint plus the planning context summary and do **not** pass codebase content — it operates externally.
 
@@ -127,6 +138,8 @@ If Step 1.2 indicates external research is useful, dispatch by the **intent** cl
 
 **Tool-unavailable handling.** `web-researcher` self-checks for web tools and stops if they are missing. Never block on this: if it reports research unavailable, or any researcher fails, warn and proceed, and carry the gap into Phase 1.4 so the plan records it honestly — especially when the user explicitly requested external research, where a silent skip would leave the plan looking evidence-based when it is not.
 
+For feature work, tool-unavailable handling fails closed instead: return `upstream-basis-required` and do not write an implementation-ready plan. Maintenance work retains the warn-and-proceed behavior above.
+
 #### 1.4 Consolidate Research
 
 Summarize:
@@ -136,6 +149,8 @@ Summarize:
 - External references, prior art, competitor/landscape findings, and best practices, if gathered
 - Related issues, PRs, or prior art
 - Any constraints that should materially shape the plan
+
+For feature work, finish consolidation with an Upstream Basis decision containing the selected project and canonical URL, exact revision or release, license, `adopted` or `forked`, the documented integration/extension surface, rejected candidates with reasons, and the smallest necessary local delta. If this decision cannot be completed, stop with `upstream-basis-required`.
 
 **Land external findings in decisions, not an appendix.** Any external research that ran must surface where it changes a choice — Key Technical Decisions rationale, Alternatives, Risks, or Sources & Research — not as a detached list with no bearing on the plan. If a finding shaped nothing, it was not load-bearing; do not pad the plan with it.
 

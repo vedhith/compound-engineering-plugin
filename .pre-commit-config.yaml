@@ -1,0 +1,19 @@
+repos:
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.38.0
+    hooks:
+      - id: check-jsonschema
+        name: validate upstream-basis receipts
+        files: ^\.compound-engineering/upstream-bases/.*\.ya?ml$
+        args:
+          - --schemafile
+          - .compound-engineering/schemas/upstream-basis.schema.json
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-json
+        files: ^\.compound-engineering/schemas/.*\.json$
+      - id: check-yaml
+        files: ^\.compound-engineering/upstream-bases/.*\.ya?ml$
+      - id: check-merge-conflict

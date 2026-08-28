@@ -10,9 +10,17 @@ Required read before writing a handoff.
 4. Redact secrets, credentials, and unrelated personal information. Preserve operational paths only when the next agent needs them.
 5. Write or publish the document using existing capabilities. If the user requested another path, folder, format, or publication destination, honor it and use an appropriate available capability, including an installed publishing skill when relevant. Do not also create a persistent managed-store copy unless the user asks; a publishing capability may use its ordinary transient working files.
 
-## Default managed storage
+## Default contained storage
 
-When the user did not choose another destination, resolve the managed root with this shell block:
+When the user did not choose another destination and the current directory is inside a Git repository, resolve the CE artifact root exactly as other CE artifact-producing skills do:
+
+- Read `docs_root` from `<repo-root>/.compound-engineering/config.yaml` only. Unset means `<root>` is `<repo-root>/docs`.
+- Validate a configured value as a repo-relative directory whose real, symlink-resolved path stays inside the repository and is neither the repo root nor under `.git/`. Stop on an invalid value; never fall back.
+- Use `<root>/handoffs` as the only managed handoff directory. Do not also write a copy to `/tmp`.
+
+Write a Markdown snapshot at `<root>/handoffs/<topic>.md`.
+
+When there is no Git repository, use the managed temporary fallback:
 
 ```bash
 SCRATCH_ROOT="/tmp/compound-engineering-$(id -u)";
@@ -21,13 +29,13 @@ if [ -L "$SCRATCH_ROOT" ]; then echo "unsafe scratch root symlink: $SCRATCH_ROOT
 (umask 077; mkdir -p "$SCRATCH_ROOT") || exit 1;
 if [ -L "$SCRATCH_ROOT" ] || [ ! -O "$SCRATCH_ROOT" ]; then echo "scratch root is not owned by the current user: $SCRATCH_ROOT" >&2; exit 1; fi;
 chmod 700 "$SCRATCH_ROOT" || exit 1;
-HANDOFF_DIR="$SCRATCH_ROOT/ce-handoff/<repo-namespace>";
+HANDOFF_DIR="$SCRATCH_ROOT/ce-handoff/general";
 (umask 077; mkdir -p "$HANDOFF_DIR") || exit 1; chmod 700 "$HANDOFF_DIR" || exit 1;
 ```
 
 Write a Markdown snapshot at `$HANDOFF_DIR/<topic>.md`.
 
-Use a readable topic slug as the filename. When Git context exists, use a sanitized repository name plus a stable root-commit prefix as the repository namespace; otherwise use `general`. Worktrees from the same repository share the namespace and remain distinguishable through frontmatter. Do not put a timestamp or unique ID in the path by default; `created_at` carries chronology for discovery. Reserve the final candidate filename atomically and exclusively; on collision, retry with the smallest available numeric suffix rather than overwrite a handoff. Never check availability and then write. Keep the directory and file user-private where the platform supports permissions.
+Use a readable topic slug as the filename. Repository handoffs share the configured artifact collection and remain distinguishable through frontmatter; no-repository handoffs use `general`. Do not put a timestamp or unique ID in the path by default; `created_at` carries chronology for discovery. Reserve the final candidate filename atomically and exclusively; on collision, retry with the smallest available numeric suffix rather than overwrite a handoff. Never check availability and then write. Keep the directory and file user-private where the platform supports permissions.
 
 ## Frontmatter contract
 
@@ -77,7 +85,7 @@ Keep the handoff pointer-first. For each load-bearing reference, name what speci
 
 ## Report
 
-Treat creation as complete only after confirming the destination contains the handoff. Give a succinct, context-specific summary of what the generated handoff captures so the user can verify its substance without opening it; do not impose a fixed summary template. Then report the final path or URL, applicable retention or access limits, and any warnings together. Managed `/tmp` storage is OS-managed and not permanent. Its automatic discovery assumes the receiving session can see the same host filesystem; otherwise tell the user to transfer or publish the handoff to a receiver-visible location and resume from that explicit source.
+Treat creation as complete only after confirming the destination contains the handoff. Give a succinct, context-specific summary of what the generated handoff captures so the user can verify its substance without opening it; do not impose a fixed summary template. Then report the final path or URL, applicable retention or access limits, and any warnings together. Repository handoffs follow repository retention and sharing; automatic discovery assumes the receiver can access that checkout. No-repository `/tmp` storage is OS-managed and not permanent and assumes the same host filesystem. Otherwise tell the user to transfer or publish the handoff to a receiver-visible location and resume from that explicit source.
 
 End the creation response with one fenced, copyable command using the final path or URL and the rendering rule in the body:
 

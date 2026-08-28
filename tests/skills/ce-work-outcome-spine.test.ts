@@ -100,8 +100,8 @@ describe("ce-work native characterization", () => {
     expect(engines).toContain("dynamic-workflow")
     expect(engines).toContain("inline/subagent flow in `references/execution-strategy.md`")
     expect(engines).not.toContain("inline/subagent flow in `SKILL.md`")
-    expect(strategy).toMatch(/\*\*Inline\*\* \| Trivial work/)
-    expect(strategy).toContain("native workers")
+    expect(strategy).toMatch(/\*\*Inline\*\* \| Default for every plan/)
+    expect(strategy).toContain("At most one implementation worker may be active")
     expect(engineGate).toContain("cross-model execution")
   })
 
@@ -141,31 +141,25 @@ describe("ce-work native characterization", () => {
 
   test("bounds worker scope while leaving canonical verification and commits with the orchestrator", async () => {
     const strategy = await readStrategy()
-    const dispatch = strategy.slice(strategy.indexOf("**Native dispatch (inline/subagent engines only)**"))
+    const dispatch = strategy.slice(strategy.indexOf("## Native dispatch (inline/subagent engines only)"))
 
     expect(dispatch).toContain("**bounded unit packet**")
-    expect(dispatch).toContain("A downstream worker may narrow that unit and authority, never broaden either")
+    expect(dispatch).toContain("may narrow but never broaden scope")
     expect(dispatch).toContain("Do not send \"read the whole plan\"")
-    expect(dispatch).toContain("**Do not commit.**")
-    expect(dispatch).toContain("**orchestrator owns staging, committing, and the authoritative test runs**")
-    expect(dispatch).toContain("Review, test, commit, and retire each unit in dependency order — the orchestrator owns commits")
+    expect(dispatch).toContain("not to stage, commit, publish, or start another worker")
+    expect(dispatch).toContain("The lead owns those actions")
+    expect(dispatch).toContain("creates the path-limited canonical commit")
   })
 
   test("uses a fresh single-use context for each dispatched native worker while preserving inline execution", async () => {
     const strategy = await readStrategy()
-    const dispatch = strategy.slice(strategy.indexOf("**Native dispatch (inline/subagent engines only)**"))
+    const dispatch = strategy.slice(strategy.indexOf("## Native dispatch (inline/subagent engines only)"))
 
-    expect(dispatch).toContain("**Fresh worker invariant (native subagent dispatch only):**")
-    expect(dispatch).toContain("When dispatching an implementation unit to a native subagent worker, create a new worker context")
+    expect(dispatch).toContain("Create a fresh worker context for exactly one unit")
     expect(dispatch).toContain("never receive a different unit")
-    expect(dispatch).toContain("never retask it or retain idle implementation workers for reuse")
-    expect(dispatch).toContain("Inline execution creates no worker context or handle, so it has nothing to retire")
-    expect(dispatch).toMatch(/After each serial inline\/subagent unit:.*If the unit used a native subagent worker, retire its handle.*dispatch the next subagent unit in a new worker context/s)
-    expect(dispatch).toMatch(/After each serial inline\/subagent unit:.*closing\/releasing it only when the harness exposes that operation and assigns that lifecycle action to the caller/s)
-    expect(dispatch).toContain("An inline unit has no worker handle to retire; start the next unit directly")
-    expect(dispatch).toMatch(/After a parallel inline\/subagent batch.*create its canonical commit, then immediately retire that unit's worker before considering the next/s)
-    expect(dispatch).toMatch(/After a parallel inline\/subagent batch.*Invoke an explicit close\/release operation only when the harness exposes it and assigns that lifecycle action to the caller/s)
-    expect(dispatch).toContain("never infer manual cleanup commands from the provider name")
+    expect(strategy).toContain("Do not launch a second worker until the first result is integrated")
+    expect(dispatch).toContain("Retires the worker after proving its result is integrated")
+    expect(dispatch).toContain("Only then may the next unit begin")
   })
 
   test("does not re-enter native dispatch after selecting cross-model execution", async () => {
@@ -177,10 +171,9 @@ describe("ce-work native characterization", () => {
     expect(engineGate).toContain("post-init engine lock")
     expect(protocol).toContain("**A successful controller `init` locks that unit to the selected cross-model engine.**")
     expect(protocol).toContain("Never reclassify it as trivial, abandon it for speed, or implement it natively")
-    expect(strategy).toContain("**Native dispatch (inline/subagent engines only)**")
-    expect(strategy).toContain("must not re-enter this ordinary subagent dispatch")
-    expect(strategy).toContain("**After each serial inline/subagent unit:**")
-    expect(strategy).toContain("**After a parallel inline/subagent batch")
+    expect(strategy).toContain("## Native dispatch (inline/subagent engines only)")
+    expect(strategy).toContain("must not re-enter ordinary native dispatch")
+    expect(strategy).toContain("A cross-model worker still consumes the run's single implementation-worker slot")
   })
 
   test("preserves standalone shipping and return-to-caller tail ownership", async () => {
@@ -560,30 +553,18 @@ describe("ce-work cross-model engine contract", () => {
     expect(protocol).toContain("Do not dispatch a new third run")
   })
 
-  test("separates scheduling from engine/workspace selection and declines unsafe waves", async () => {
+  test("serializes implementation while allowing independent read-only batching", async () => {
     const skill = await readRepoFile("skills/ce-work/SKILL.md")
     const loop = await readRepoFile("skills/ce-work/references/implementation-loop.md")
-    const gate = sliceSection(await readStrategy(), "**Parallel Safety Check**", "**Native dispatch (inline/subagent engines only)**")
+    const strategy = await readStrategy()
 
-    expect(gate).toContain("separate from engine and workspace selection")
-    expect(gate).toContain("decline parallelism")
-    expect(gate).toContain("dependencies")
-    expect(gate).toContain("declared files")
-    expect(gate).toContain("shared types/APIs/interfaces")
-    expect(gate).toContain("migrations")
-    expect(gate).toContain("lockfiles")
-    expect(gate).toContain("generated")
-    expect(gate).toContain("registry")
-    expect(gate).toContain("config")
-    expect(gate).toContain("environment singleton")
-    expect(gate).toContain("expected merge")
-    expect(gate).toContain("3-5")
-    expect(gate).toContain("every concurrent worker")
-    expect(gate).toContain("isolated workspace")
-    expect(gate).toContain("synchronous native")
-    expect(gate).toContain("active checkout")
+    expect(strategy).toContain("One lead context executing inline is the default")
+    expect(strategy).toContain("At most one implementation worker may be active")
+    expect(strategy).toContain("Parallel implementation, worker pools, agent teams, and autonomous fan-out are prohibited")
+    expect(strategy).toContain("Independent read-only tool calls may be batched")
+    expect(strategy).toContain("Every dependency for the unit is committed")
+    expect(strategy).toContain("isolated workspace")
     expect(loop).toContain("Repeated collision")
-    expect(loop).toContain("disable further parallel waves")
   })
 
   test("makes linked-checkout siblings and silent-route supervision explicit", async () => {

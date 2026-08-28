@@ -4,6 +4,10 @@
 
 # Compound Engineering
 
+> This fork applies an [upstream-first universal workflow](docs/upstream-first-policy.md): feature implementation requires a selected system to adopt or fork, and execution is single-lead by default.
+>
+> Install this policy-bearing fork by substituting `vedhith/compound-engineering-plugin` anywhere the instructions below name `EveryInc/compound-engineering-plugin`. The plugin and marketplace names remain `compound-engineering` and `compound-engineering-plugin`, so the same native install path works across supported hosts.
+
 **AI skills that make each unit of engineering work easier than the last.**
 
 [![Build Status](https://github.com/EveryInc/compound-engineering-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/EveryInc/compound-engineering-plugin/actions/workflows/ci.yml)

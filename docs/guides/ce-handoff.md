@@ -15,7 +15,7 @@ The skill is prose-first. It uses the active agent's available capabilities. It 
 | What does it do? | Creates an immutable session snapshot, or orients from a continuity source you select |
 | When to use it | Before ending a useful session, or when a new agent needs prior context |
 | What does bare `/ce-handoff` do? | Always creates a new handoff |
-| Where does it write? | Default: `/tmp/compound-engineering-<effective-uid>/ce-handoff/<repo-namespace>/<topic>.md` (under `$TMPDIR/compound-engineering-<effective-uid>/` instead when `/tmp` cannot host a writable private root, as in a sandbox that only allowlists `$TMPDIR`; the skill prints the path it used). An explicit path, format, or publish destination overrides that. |
+| Where does it write? | In a repository: `<docs_root>/handoffs/<topic>.md` (`docs/handoffs/` when `docs_root` is unset). With no repository: the private `/tmp/compound-engineering-<effective-uid>/ce-handoff/general/` fallback. An explicit path, format, or publish destination overrides that. |
 | What do I paste into the next session? | `/ce-handoff resume <path-or-URL>` |
 | What happens after resume? | A summary, a continuation matched to that handoff's reason, then a wait. Numbered choices appear only for real forks. |
 
@@ -26,13 +26,13 @@ The skill is prose-first. It uses the active agent's available capabilities. It 
 Bare invoke always creates. `resume` never creates. An explicit path or URL is already your selection, so resume reads it instead of searching.
 
 ```text
-# End this session. Write a handoff in managed temporary storage.
+# End this session. Write a handoff in the repository artifact root.
 /ce-handoff
 
 # Create with an explicit next-session objective
 /ce-handoff create finish the authentication migration
 
-# Write somewhere other than /tmp (any path you name)
+# Write somewhere other than the configured artifact root (any path you name)
 /ce-handoff create finish the authentication migration and write it to /path/to/authentication-migration.md
 
 # Publish so another machine or container can reach it
@@ -42,7 +42,7 @@ Bare invoke always creates. `resume` never creates. An explicit path or URL is a
 /ce-handoff resume authentication migration
 
 # Resume a source you already have
-/ce-handoff resume /tmp/compound-engineering-<effective-uid>/ce-handoff/<repo-namespace>/authentication-migration.md
+/ce-handoff resume .workflow/handoffs/authentication-migration.md
 /ce-handoff resume https://example.com/authentication-migration-handoff
 
 # Natural language in a new session also works:
@@ -73,13 +73,13 @@ By default the skill writes one pointer-first Markdown document with:
 
 Only managed-store frontmatter has a fixed contract, because default discovery depends on it. The body has no closed section schema. The agent may add, combine, rename, reorder, or omit example sections so the next agent can see *this* session clearly.
 
-The managed store is a default, not a restriction. If you name another path, folder, format, or publication destination, the agent follows that with an installed capability. It does not also write a temporary copy unless you asked or the publish flow needs a working file.
+The contained store is a default, not a restriction. If you name another path, folder, format, or publication destination, the agent follows that with an installed capability. It does not also write another managed copy unless you asked or the publish flow needs a working file.
 
 Repository files are referenced relatively when possible. Absolute paths are reserved for machine-local context. The skill redacts secrets and unrelated personal information. It never commits, stashes, copies, or preserves a worktree on its own.
 
-Default files live in OS-managed `/tmp`. The topic filename sits in a repository-level collection. Creation time and worktree identity stay in frontmatter. A real filename collision gets a numeric suffix. The skill says the file is reusable across sessions but not permanent project documentation.
+Repository handoffs live in the same configured CE artifact root as plans and reports, under `handoffs/`. Creation time and worktree identity stay in frontmatter. A real filename collision gets a numeric suffix. Only no-repository handoffs use OS-managed `/tmp`, where retention is explicitly temporary.
 
-Automatic discovery works when the receiving session can see the same host filesystem. If the next agent is on another machine, in another container, or cannot see that `/tmp`, transfer or publish the handoff and resume from that explicit source. The skill does not add its own transport layer.
+Automatic discovery works when the receiving session can access the repository checkout, or the same host filesystem for a no-repository handoff. Otherwise transfer or publish the handoff and resume from that explicit source. The skill does not add its own transport layer.
 
 ---
 
@@ -105,10 +105,10 @@ Discovery stops before any document body is read. You pick the candidate. Orient
 
 ## Quick Example
 
-You are mid-migration and about to close the session. `/ce-handoff create finish the authentication migration` writes a snapshot under `/tmp/compound-engineering-<effective-uid>/ce-handoff/<repo>/authentication-migration.md`, summarizes what it captured, and prints:
+You are mid-migration and about to close the session. `/ce-handoff create finish the authentication migration` writes a snapshot under `<docs_root>/handoffs/authentication-migration.md`, summarizes what it captured, and prints:
 
 ```text
-/ce-handoff resume /tmp/compound-engineering-<effective-uid>/ce-handoff/.../authentication-migration.md
+/ce-handoff resume .workflow/handoffs/authentication-migration.md
 ```
 
 In a new session you paste that command. The agent reads the file, checks that the worktree still exists, summarizes the recovered state, and recommends one continuation (for example `ce-work` on the open plan). It then waits. Selecting the file authorized that read only.
@@ -131,7 +131,7 @@ Skip it when:
 
 - You are continuing in the current session
 - The information belongs in a durable plan, issue, learning, or project document
-- You need guaranteed long-term retention. `/tmp` is OS-managed and may be cleaned up. Write or publish somewhere durable instead.
+- You have no repository and need guaranteed long-term retention. The fallback `/tmp` store may be cleaned up, so write or publish somewhere durable instead.
 
 ---
 
@@ -149,7 +149,7 @@ On resume, the skill recommends a continuation matched to the selected source. I
 
 | Argument | Effect |
 |----------|--------|
-| _(empty)_ | Always creates a new handoff in the managed `/tmp` store |
+| _(empty)_ | Creates under the repository's configured artifact root, or the managed `/tmp` fallback when no repository exists |
 | `create [focus]` | Creates. `focus` becomes the next session's intended objective. |
 | `create …` plus a path, folder, format, or publish destination | Creates at that destination instead of (not in addition to) the managed store |
 | `resume <keywords>` | Searches the managed store (or a folder you named), lists candidates, and waits for a choice |
@@ -168,8 +168,8 @@ No. It orients, recommends, and waits. Selection authorizes reading that source 
 **Can I resume something that was not created by this skill?**
 Yes. An explicit source does not need CE frontmatter or to have been written as a formal handoff.
 
-**Why is the default under `/tmp`?**
-It is continuity, not project documentation. Say a durable path or a publish destination when the next session will not share this filesystem, or when you need the file to survive a reboot.
+**Why is `/tmp` used when there is no repository?**
+There is no project artifact root to contain the handoff. Name a durable path or publication destination when the next session will not share the host filesystem.
 
 **Will two handoffs overwrite each other?**
 No. A real filename collision gets a numeric suffix. The skill reserves the name atomically.

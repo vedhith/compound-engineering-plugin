@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vedhith/compound-engineering-plugin/schemas/upstream-basis.schema.json",
+  "title": "Upstream Basis Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "change_id",
+    "change_class",
+    "decision",
+    "selected",
+    "candidates",
+    "verification"
+  ],
+  "properties": {
+    "schema_version": { "const": "upstream-basis/v1" },
+    "change_id": { "type": "string", "minLength": 3, "maxLength": 120 },
+    "change_class": { "enum": ["feature", "maintenance"] },
+    "decision": { "enum": ["adopted", "forked"] },
+    "selected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url", "revision", "license", "integration_surface", "local_delta"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "revision": { "type": "string", "minLength": 7 },
+        "license": { "type": "string", "minLength": 2 },
+        "integration_surface": { "type": "string", "minLength": 10 },
+        "local_delta": { "type": "string", "minLength": 1 }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "url", "disposition", "reason"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+          "disposition": { "enum": ["selected", "rejected"] },
+          "reason": { "type": "string", "minLength": 10 }
+        }
+      },
+      "contains": {
+        "type": "object",
+        "properties": { "disposition": { "const": "selected" } },
+        "required": ["disposition"]
+      },
+      "minContains": 1,
+      "maxContains": 1
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["license_checked", "activity_checked", "tests_checked"],
+      "properties": {
+        "license_checked": { "const": true },
+        "activity_checked": { "const": true },
+        "tests_checked": { "const": true }
+      }
+    }
+  }
+}

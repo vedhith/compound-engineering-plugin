@@ -155,6 +155,11 @@ present. They carry the contracts downstream consumers depend on.
 - **Planning Contract** — the implementation-facing decisions: Key Technical
   Decisions, high-level design, assumptions, implementation constraints,
   sequencing, and research that shapes how the Product Contract will be built.
+  Feature plans include an **Upstream Basis** subsection naming the selected
+  adopted or forked project, canonical URL, revision or release, license,
+  documented integration or extension surface, rejected candidates, and the
+  bounded local delta. This is a hard floor for feature work; a list of rejected
+  projects without a selected basis is not implementation-ready.
 - **Implementation Units** (with stable U-IDs) — discrete work packets sized so
   each is independently executable. Each unit names Goal, Requirements,
   Files, Approach, Test Scenarios, and Verification. `ce-work` and goal-mode
@@ -405,6 +410,13 @@ plan.
   `fix`, `refactor`, `chore`, `docs`, `perf`, `test`, etc.). Carries the
   intent the eventual commit message should reflect.
 - **`date`** — creation date in ISO 8601 (`YYYY-MM-DD`), ASCII digits only.
+- **`change_class`** — `feature` when work adds or materially extends product
+  behavior; `maintenance` for fixes, refactors, tests, documentation, and
+  mechanical changes that add no product behavior.
+- **`upstream_basis`** — required when `change_class: feature`; exactly
+  `adopted` or `forked`, matching the Planning Contract's Upstream Basis.
+  Omit it for maintenance work. Any other value, including `greenfield`, makes
+  the plan non-executable.
 
 Plans carry **no `status` field** — a plan is a decision artifact, not a
 tracked work item. `ce-work` does not mutate the plan at ship time;
